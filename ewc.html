@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EWC Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800;14..32,900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
+    </script>
+    <style>
+        /* ============================================================
+           CSS CUSTOM PROPERTIES (Design Tokens)
+        ============================================================ */
+        :root {
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            --radius-sm: 10px;
+            --radius: 18px;
+            --radius-lg: 22px;
+            --radius-xl: 28px;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+            --shadow: 0 4px 16px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
+            --shadow-lg: 0 12px 40px rgba(0,0,0,0.12), 0 4px 16px rgba(0,0,0,0.06);
+            --shadow-xl: 0 24px 56px rgba(0,0,0,0.16), 0 8px 24px rgba(0,0,0,0.08);
+            --sidebar-width: 260px;
+            --sidebar-collapsed: 68px;
+            --navbar-height: 64px;
+        }
+
+        /* Dark theme (default) */
+        [data-theme="dark"] {
+            --bg-primary: #0b0e11;
+            --bg-secondary: #11161b;
+            --bg-surface: rgba(22,26,30,0.7);
+            --bg-card: rgba(26,31,36,0.78);
+            --bg-card-hover: rgba(30,36,42,0.9);
+            --bg-sidebar: rgba(14,17,21,0.88);
+            --bg-navbar: rgba(14,17,21,0.82);
+            --bg-input: rgba(22,26,30,0.65);
+            --bg-tooltip: rgba(18,22,26,0.95);
+            --bg-badge: rgba(59,130,246,0.18);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-tertiary: #64748b;
+            --text-muted: #475569;
+            --border-subtle: rgba(255,255,255,0.07);
+            --border-medium: rgba(255,255,255,0.1);
+            --border-strong: rgba(255,255,255,0.15);
+            --accent: #3b82f6;
+            --accent-glow: rgba(59,130,246,0.35);
+            --accent-light: rgba(59,130,246,0.15);
+            --positive: #10b981;
+            --positive-glow: rgba(16,185,129,0.3);
+            --negative: #ef4444;
+            --negative-glow: rgba(239,68,68,0.3);
+            --warning: #f59e0b;
+            --warning-glow: rgba(245,158,11,0.3);
+            --info: #6366f1;
+            --chart-grid: rgba(255,255,255,0.04);
+            --chart-text: #94a3b8;
+            --scrollbar-track: rgba(0,0,0,0.2);
+            --scrollbar-thumb: rgba(255,255,255,0.12);
+            --shadow-color: rgba(0,0,0,0.5);
+            --glass-shine: rgba(255,255,255,0.04);
+            --table-stripe: rgba(255,255,255,0.015);
+        }
+
+        /* Light theme */
+        [data-theme="light"] {
+            --bg-primary: #f1f5f9;
+            --bg-secondary: #f8fafc;
+            --bg-surface: rgba(255,255,255,0.78);
+            --bg-card: rgba(255,255,255,0.82);
+            --bg-card-hover: rgba(255,255,255,0.95);
+            --bg-sidebar: rgba(255,255,255,0.88);
+            --bg-navbar: rgba(255,255,255,0.82);
+            --bg-input: rgba(241,245,249,0.75);
+            --bg-tooltip: rgba(255,255,255,0.95);
+            --bg-badge: rgba(59,130,246,0.12);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-tertiary: #94a3b8;
+            --text-muted: #cbd5e1;
+            --border-subtle: rgba(0,0,0,0.06);
+            --border-medium: rgba(0,0,0,0.1);
+            --border-strong: rgba(0,0,0,0.15);
+            --accent: #2563eb;
+            --accent-glow: rgba(37,99,235,0.22);
+            --accent-light: rgba(37,99,235,0.08);
+            --positive: #059669;
+            --positive-glow: rgba(5,150,105,0.18);
+            --negative: #dc2626;
+            --negative-glow: rgba(220,38,38,0.18);
+            --warning: #d97706;
+            --warning-glow: rgba(217,119,6,0.18);
+            --info: #4f46e5;
+            --chart-grid: rgba(0,0,0,0.05);
+            --chart-text: #64748b;
+            --scrollbar-track: rgba(0,0,0,0.04);
+            --scrollbar-thumb: rgba(0,0,0,0.12);
+            --shadow-color: rgba(0,0,0,0.08);
+            --glass-shine: rgba(255,255,255,0.5);
+            --table-stripe: rgba(0,0,0,0.012);
+        }
+
+        /* ============================================================
+           GLOBAL RESETS & BASE
+        ============================================================ */
+        * { margin:0; padding:0; box-sizing:border-box; }
+        html { font-size:16px; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+        body {
+            font-family:var(--font);
+            background:var(--bg-primary);
+            color:var(--text-primary);
+            min-height:100vh;
+            display:flex;
+            overflow:hidden;
+            transition:background var(--transition-slow), color var(--transition-slow);
+            letter-spacing:-0.01em;
+            line-height:1.5;
+        }
+        /* Ambient background glow */
+        body::before {
+            content:'';
+            position:fixed; inset:0; pointer-events:none; z-index:0;
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(59,130,246,0.06) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 70%, rgba(99,102,241,0.05) 0%, transparent 60%),
+                radial-gradient(ellipse at 50% 50%, rgba(16,185,129,0.03) 0%, transparent 70%);
+            transition:opacity var(--transition-slow);
+        }
+        [data-theme="light"] body::before { opacity:0.4; }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width:6px; height:6px; }
+        ::-webkit-scrollbar-track { background:var(--scrollbar-track); border-radius:3px; }
+        ::-webkit-scrollbar-thumb { background:var(--scrollbar-thumb); border-radius:3px; }
+        ::-webkit-scrollbar-thumb:hover { background:var(--border-strong); }
+
+        /* Focus visibility for accessibility */
+        :focus-visible { outline:2px solid var(--accent); outline-offset:2px; border-radius:4px; }
+        button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+
+        /* ============================================================
+           SIDEBAR
+        ============================================================ */
+        .sidebar {
+            position:fixed; left:0; top:0; bottom:0; width:var(--sidebar-width);
+            background:var(--bg-sidebar);
+            backdrop-filter:blur(24px) saturate(180%);
+            -webkit-backdrop-filter:blur(24px) saturate(180%);
+            border-right:1px solid var(--border-subtle);
+            z-index:100; display:flex; flex-direction:column;
+            transition:width var(--transition), transform var(--transition);
+            overflow:hidden; flex-shrink:0;
+        }
+        .sidebar.collapsed { width:var(--sidebar-collapsed); }
+        .sidebar.collapsed .nav-label,
+        .sidebar.collapsed .sidebar-brand-text,
+        .sidebar.collapsed .sidebar-section-title,
+        .sidebar.collapsed .sidebar-footer-text { opacity:0; pointer-events:none; width:0; overflow:hidden; }
+        .sidebar.collapsed .nav-item { justify-content:center; padding:12px; }
+        .sidebar.collapsed .sidebar-brand { justify-content:center; padding:20px 8px; }
+        .sidebar.collapsed .sidebar-footer { justify-content:center; }
+
+        .sidebar-brand {
+            display:flex; align-items:center; gap:12px; padding:26px 20px;
+            border-bottom:1px solid var(--border-subtle); flex-shrink:0; transition:all var(--transition); cursor:pointer;
+        }
+        .sidebar-brand-icon {
+            width:38px; height:38px; border-radius:var(--radius-sm);
+            background:linear-gradient(135deg, #3b82f6, #6366f1);
+            display:flex; align-items:center; justify-content:center;
+            color:#fff; font-weight:800; font-size:18px; flex-shrink:0;
+            box-shadow:0 4px 12px rgba(59,130,246,0.4);
+        }
+        .sidebar-brand-text { font-weight:700; font-size:20px; letter-spacing:-0.02em; white-space:nowrap; transition:opacity var(--transition); color:var(--text-primary); }
+        .sidebar-nav { flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:4px; }
+        .sidebar-section-title { font-size:10px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-tertiary); padding:16px 12px 8px; font-weight:600; white-space:nowrap; transition:opacity var(--transition); }
+        .nav-item {
+            display:flex; align-items:center; gap:12px; padding:12px 14px;
+            border-radius:var(--radius-sm); cursor:pointer; transition:all var(--transition);
+            color:var(--text-secondary); font-weight:500; font-size:14px; white-space:nowrap;
+            position:relative; text-decoration:none;
+        }
+        .nav-item:hover { background:var(--accent-light); color:var(--text-primary); }
+        .nav-item.active { background:var(--accent-light); color:var(--accent); font-weight:600; box-shadow:inset 3px 0 0 var(--accent); }
+        .nav-item i { width:20px; text-align:center; font-size:16px; flex-shrink:0; }
+        .nav-badge { margin-left:auto; background:var(--accent); color:#fff; font-size:10px; padding:2px 8px; border-radius:20px; font-weight:600; letter-spacing:0.02em; }
+        .sidebar-footer { border-top:1px solid var(--border-subtle); padding:16px; display:flex; align-items:center; gap:12px; flex-shrink:0; transition:all var(--transition); }
+        .sidebar-avatar { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg, #10b981, #059669); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:14px; flex-shrink:0; position:relative; }
+        .sidebar-avatar::after { content:''; position:absolute; bottom:0; right:0; width:10px; height:10px; background:#10b981; border:2px solid var(--bg-sidebar); border-radius:50%; }
+        .sidebar-footer-text { transition:opacity var(--transition); white-space:nowrap; }
+        .sidebar-footer-name { font-weight:600; font-size:13px; color:var(--text-primary); }
+        .sidebar-footer-role { font-size:11px; color:var(--text-tertiary); }
+
+        .sidebar-toggle { position:absolute; right:-12px; top:50%; transform:translateY(-50%); width:28px; height:28px; border-radius:50%; background:var(--bg-card); border:1px solid var(--border-medium); cursor:pointer; z-index:101; display:flex; align-items:center; justify-content:center; color:var(--text-secondary); transition:all var(--transition); font-size:11px; }
+        .sidebar-toggle:hover { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+        /* ============================================================
+           MAIN WRAPPER & NAVBAR
+        ============================================================ */
+        .main-wrapper { flex:1; margin-left:var(--sidebar-width); transition:margin-left var(--transition); display:flex; flex-direction:column; min-height:100vh; position:relative; z-index:1; }
+        .sidebar.collapsed ~ .main-wrapper { margin-left:var(--sidebar-collapsed); }
+
+        .navbar {
+            position:sticky; top:0; z-index:50; height:var(--navbar-height);
+            background:var(--bg-navbar);
+            backdrop-filter:blur(20px) saturate(180%);
+            -webkit-backdrop-filter:blur(20px) saturate(180%);
+            border-bottom:1px solid var(--border-subtle);
+            display:flex; align-items:center; padding:0 28px; gap:16px; transition:all var(--transition);
+        }
+        .navbar-search { flex:1; max-width:400px; position:relative; }
+        .navbar-search input { width:100%; padding:10px 16px 10px 42px; border-radius:25px; border:1px solid var(--border-medium); background:var(--bg-input); color:var(--text-primary); font-family:var(--font); font-size:14px; transition:all var(--transition); outline:none; }
+        .navbar-search input:focus { border-color:var(--accent); box-shadow:0 0 0 4px var(--accent-light); background:var(--bg-card); }
+        .navbar-search i { position:absolute; left:16px; top:50%; transform:translateY(-50%); color:var(--text-tertiary); font-size:15px; }
+        .navbar-date { font-size:13px; color:var(--text-secondary); font-weight:500; white-space:nowrap; letter-spacing:-0.01em; }
+        .navbar-actions { display:flex; align-items:center; gap:8px; margin-left:auto; }
+        .navbar-btn { width:40px; height:40px; border-radius:50%; border:1px solid var(--border-medium); background:var(--bg-input); cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--text-secondary); transition:all var(--transition); position:relative; font-size:15px; }
+        .navbar-btn:hover { background:var(--bg-card-hover); color:var(--text-primary); border-color:var(--border-strong); box-shadow:var(--shadow); }
+        .navbar-btn .badge-dot { position:absolute; top:8px; right:8px; width:9px; height:9px; background:var(--negative); border-radius:50%; border:2px solid var(--bg-navbar); animation:pulse-dot 2s infinite; }
+        @keyframes pulse-dot { 0%,100%{ box-shadow:0 0 0 0 var(--negative-glow); } 50%{ box-shadow:0 0 0 8px transparent; } }
+        .navbar-profile { display:flex; align-items:center; gap:10px; padding:6px 14px 6px 6px; border-radius:25px; border:1px solid var(--border-medium); background:var(--bg-input); cursor:pointer; transition:all var(--transition); }
+        .navbar-profile:hover { background:var(--bg-card-hover); box-shadow:var(--shadow); }
+        .navbar-profile-avatar { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg, #3b82f6, #6366f1); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:12px; }
+        .navbar-profile-name { font-weight:600; font-size:13px; color:var(--text-primary); }
+
+        /* ============================================================
+           CONTENT & SECTIONS
+        ============================================================ */
+        .content { flex:1; padding:36px 28px; overflow-y:auto; display:flex; flex-direction:column; gap:32px; }
+        .section-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:-8px; }
+        .section-title { font-size:24px; font-weight:700; letter-spacing:-0.02em; color:var(--text-primary); }
+        .section-subtitle { font-size:13px; color:var(--text-tertiary); font-weight:400; }
+        .section-actions { display:flex; gap:8px; flex-wrap:wrap; }
+
+        .btn { padding:9px 18px; border-radius:25px; border:1px solid var(--border-medium); background:var(--bg-card); cursor:pointer; font-family:var(--font); font-size:13px; font-weight:500; color:var(--text-primary); transition:all var(--transition); white-space:nowrap; display:inline-flex; align-items:center; gap:6px; backdrop-filter:blur(8px); }
+        .btn:hover { background:var(--bg-card-hover); border-color:var(--border-strong); box-shadow:var(--shadow); }
+        .btn-primary { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600; box-shadow:0 4px 14px var(--accent-glow); }
+        .btn-primary:hover { background:#2563eb; box-shadow:0 6px 20px var(--accent-glow); }
+        .btn-sm { padding:6px 12px; font-size:11px; border-radius:20px; }
+
+        /* ============================================================
+           KPI CARDS
+        ============================================================ */
+        .kpi-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:22px; }
+        .kpi-card {
+            background:var(--bg-card); backdrop-filter:blur(20px) saturate(180%);
+            -webkit-backdrop-filter:blur(20px) saturate(180%); border:1px solid var(--border-subtle);
+            border-radius:var(--radius-lg); padding:24px 20px; transition:all var(--transition);
+            cursor:pointer; position:relative; overflow:hidden; min-height:168px; display:flex; flex-direction:column;
+        }
+        .kpi-card::after { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg, transparent, var(--glass-shine), transparent); pointer-events:none; }
+        .kpi-card:hover { transform:translateY(-3px); box-shadow:var(--shadow-xl); border-color:var(--border-strong); background:var(--bg-card-hover); }
+        .kpi-card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+        .kpi-card-icon { width:42px; height:42px; border-radius:var(--radius-sm); display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+        .kpi-card-icon.blue { background:rgba(59,130,246,0.15); color:#3b82f6; }
+        .kpi-card-icon.green { background:rgba(16,185,129,0.15); color:#10b981; }
+        .kpi-card-icon.purple { background:rgba(99,102,241,0.15); color:#6366f1; }
+        .kpi-card-icon.amber { background:rgba(245,158,11,0.15); color:#f59e0b; }
+        .kpi-card-icon.rose { background:rgba(239,68,68,0.15); color:#ef4444; }
+        .kpi-card-label { font-size:11px; color:var(--text-tertiary); font-weight:600; letter-spacing:0.06em; text-transform:uppercase; }
+        .kpi-card-value { font-size:38px; font-weight:800; letter-spacing:-0.03em; color:var(--text-primary); margin-bottom:6px; line-height:1; }
+        .kpi-card-trend { display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; padding:4px 10px; border-radius:20px; }
+        .kpi-card-trend.up { color:#10b981; background:rgba(16,185,129,0.1); }
+        .kpi-card-trend.down { color:#ef4444; background:rgba(239,68,68,0.1); }
+        .kpi-sparkline { height:44px; margin-top:auto; width:100%; }
+        .kpi-sparkline canvas { width:100%!important; height:44px!important; }
+
+        /* ============================================================
+           GRID LAYOUTS
+        ============================================================ */
+        .grid-2 { display:grid; grid-template-columns:repeat(2,1fr); gap:22px; }
+        .grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:22px; }
+        .grid-2-1 { display:grid; grid-template-columns:2fr 1fr; gap:22px; }
+        .grid-1-2 { display:grid; grid-template-columns:1fr 2fr; gap:22px; }
+        .grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:22px; }
+
+        /* ============================================================
+           CARDS & CHARTS
+        ============================================================ */
+        .card {
+            background:var(--bg-card); backdrop-filter:blur(20px) saturate(180%);
+            -webkit-backdrop-filter:blur(20px) saturate(180%); border:1px solid var(--border-subtle);
+            border-radius:var(--radius-lg); padding:24px; transition:all var(--transition);
+            position:relative; overflow:hidden;
+        }
+        .card::after { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg, transparent, var(--glass-shine), transparent); pointer-events:none; }
+        .card:hover { box-shadow:var(--shadow-lg); border-color:var(--border-medium); }
+        .card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:8px; }
+        .card-title { font-size:15px; font-weight:600; letter-spacing:-0.01em; color:var(--text-primary); }
+        .card-subtitle { font-size:11px; color:var(--text-tertiary); }
+        .chart-container { position:relative; width:100%; height:280px; }
+        .chart-container.short { height:240px; }
+        .chart-container.tall { height:340px; }
+        .chart-container canvas { width:100%!important; height:100%!important; }
+
+        /* ============================================================
+           TABLES
+        ============================================================ */
+        .table-wrap { overflow-x:auto; margin:0 -8px; padding:0 8px; }
+        .table-wrap table { width:100%; border-collapse:collapse; font-size:13px; }
+        .table-wrap th { text-align:left; padding:12px 14px; font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-tertiary); border-bottom:1px solid var(--border-subtle); white-space:nowrap; }
+        .table-wrap td { padding:12px 14px; border-bottom:1px solid var(--border-subtle); color:var(--text-primary); white-space:nowrap; font-weight:500; }
+        .table-wrap tbody tr { transition:background var(--transition); }
+        .table-wrap tbody tr:nth-child(even) { background:var(--table-stripe); }
+        .table-wrap tbody tr:hover { background:var(--accent-light); }
+        .status-pill { display:inline-block; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:600; letter-spacing:0.01em; }
+        .status-pill.success { background:rgba(16,185,129,0.18); color:#10b981; }
+        .status-pill.warning { background:rgba(245,158,11,0.18); color:#f59e0b; }
+        .status-pill.danger { background:rgba(239,68,68,0.18); color:#ef4444; }
+        .status-pill.info { background:rgba(59,130,246,0.18); color:#3b82f6; }
+
+        /* ============================================================
+           WIDGETS & MISC
+        ============================================================ */
+        .progress-label { display:flex; justify-content:space-between; font-size:11px; margin-bottom:4px; color:var(--text-secondary); font-weight:500; }
+        .progress-bar { height:6px; border-radius:3px; background:var(--border-subtle); overflow:hidden; }
+        .progress-fill { height:100%; border-radius:3px; background:linear-gradient(90deg, var(--accent), #6366f1); transition:width 1s ease; }
+        .progress-fill.green { background:linear-gradient(90deg, #10b981, #059669); }
+        .progress-fill.amber { background:linear-gradient(90deg, #f59e0b, #d97706); }
+
+        .calendar-mini { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; text-align:center; font-size:11px; }
+        .calendar-mini .day-header { color:var(--text-tertiary); font-weight:600; padding:4px; font-size:10px; }
+        .calendar-mini .day { padding:6px 2px; border-radius:8px; cursor:pointer; transition:all var(--transition); color:var(--text-secondary); font-weight:500; }
+        .calendar-mini .day:hover { background:var(--accent-light); }
+        .calendar-mini .day.today { background:var(--accent); color:#fff; font-weight:700; }
+        .calendar-mini .day.event::after { content:''; display:block; margin:2px auto 0; width:4px; height:4px; border-radius:50%; background:var(--accent); }
+        .calendar-mini .day.event.today::after { background:#fff; }
+
+        .activity-item { display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--border-subtle); align-items:flex-start; }
+        .activity-item:last-child { border-bottom:none; }
+        .activity-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; margin-top:4px; }
+        .activity-content { flex:1; font-size:12px; color:var(--text-secondary); line-height:1.4; }
+        .activity-content strong { color:var(--text-primary); font-weight:600; }
+        .activity-time { font-size:10px; color:var(--text-tertiary); margin-top:2px; }
+
+        .notes-area { width:100%; min-height:100px; background:var(--bg-input); border:1px solid var(--border-medium); border-radius:var(--radius-sm); padding:14px; color:var(--text-primary); font-family:var(--font); font-size:13px; resize:vertical; outline:none; transition:all var(--transition); }
+        .notes-area:focus { border-color:var(--accent); box-shadow:0 0 0 4px var(--accent-light); }
+
+        .footer { border-top:1px solid var(--border-subtle); padding:16px 28px; display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--text-tertiary); background:var(--bg-navbar); backdrop-filter:blur(16px); flex-wrap:wrap; gap:8px; }
+
+        /* ============================================================
+           ANIMATIONS
+        ============================================================ */
+        @keyframes fadeInUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+        .animate-in { animation:fadeInUp 0.5s ease forwards; }
+        .delay-1{ animation-delay:0.05s; } .delay-2{ animation-delay:0.1s; } .delay-3{ animation-delay:0.15s; } .delay-4{ animation-delay:0.2s; } .delay-5{ animation-delay:0.25s; }
+
+        /* ============================================================
+           RESPONSIVE BREAKPOINTS
+        ============================================================ */
+        @media (max-width:1440px) {
+            .kpi-grid { grid-template-columns:repeat(5,1fr); gap:18px; }
+            .kpi-card { padding:20px 16px; min-height:160px; }
+            .kpi-card-value { font-size:32px; }
+        }
+        @media (max-width:1200px) {
+            .kpi-grid { grid-template-columns:repeat(3,1fr); }
+            .grid-2-1, .grid-1-2 { grid-template-columns:1fr; }
+            .grid-3 { grid-template-columns:repeat(2,1fr); }
+            .grid-4 { grid-template-columns:repeat(2,1fr); }
+            .chart-container { height:240px; }
+            .chart-container.tall { height:280px; }
+        }
+        @media (max-width:900px) {
+            .sidebar { width:var(--sidebar-collapsed); }
+            .sidebar .nav-label, .sidebar .sidebar-brand-text, .sidebar .sidebar-section-title, .sidebar .sidebar-footer-text { opacity:0; pointer-events:none; width:0; overflow:hidden; }
+            .sidebar .nav-item { justify-content:center; padding:12px; }
+            .sidebar .sidebar-brand { justify-content:center; padding:20px 8px; }
+            .sidebar .sidebar-footer { justify-content:center; }
+            .main-wrapper { margin-left:var(--sidebar-collapsed); }
+            .sidebar-toggle { display:none; }
+            .kpi-grid { grid-template-columns:repeat(2,1fr); gap:14px; }
+            .kpi-card-value { font-size:28px; }
+            .grid-2, .grid-3, .grid-4 { grid-template-columns:1fr; }
+            .content { padding:24px 16px; gap:24px; }
+            .chart-container { height:220px; }
+            .chart-container.tall { height:260px; }
+            .navbar { padding:0 14px; gap:8px; }
+            .navbar-search { max-width:180px; }
+        }
+        @media (max-width:600px) {
+            .kpi-grid { grid-template-columns:1fr 1fr; gap:10px; }
+            .kpi-card { min-height:150px; padding:14px; }
+            .kpi-card-value { font-size:24px; }
+            .navbar-search { max-width:130px; }
+            .navbar-date { display:none; }
+            .content { padding:16px 10px; gap:18px; }
+            .chart-container { height:200px; }
+            .chart-container.tall { height:230px; }
+            .section-title { font-size:20px; }
+            .card { padding:16px; }
+            .footer { flex-direction:column; text-align:center; }
+        }
+    </style>
+</head>
+<body>
+    <!-- ========== SIDEBAR ========== -->
+    <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+        <div class="sidebar-brand" onclick="App.toggleSidebar()">
+            <div class="sidebar-brand-icon" aria-hidden="true">EWC</div>
+            <span class="sidebar-brand-text">EGAT WELLNESS</span>
+        </div>
+        <button class="sidebar-toggle" onclick="App.toggleSidebar()" aria-label="Toggle sidebar">
+            <i class="fa-solid fa-chevron-left" id="sidebar-chevron" aria-hidden="true"></i>
+        </button>
+        <nav class="sidebar-nav">
+            <div class="sidebar-section-title">Main</div>
+            <a class="nav-item active" href="#" aria-label="Dashboard"><i class="fa-solid fa-grid-2" aria-hidden="true"></i> <span class="nav-label">Dashboard</span></a>
+            <a class="nav-item" href="#" aria-label="Sales"><i class="fa-solid fa-chart-line" aria-hidden="true"></i> <span class="nav-label">Sales</span><span class="nav-badge">12</span></a>
+            <a class="nav-item" href="#" aria-label="Customers"><i class="fa-solid fa-users" aria-hidden="true"></i> <span class="nav-label">Customers</span></a>
+            <a class="nav-item" href="#" aria-label="Products"><i class="fa-solid fa-box" aria-hidden="true"></i> <span class="nav-label">Products</span></a>
+            <a class="nav-item" href="#" aria-label="Inventory"><i class="fa-solid fa-warehouse" aria-hidden="true"></i> <span class="nav-label">Inventory</span><span class="nav-badge">3</span></a>
+            <div class="sidebar-section-title">Analytics</div>
+            <a class="nav-item" href="#" aria-label="Reports"><i class="fa-solid fa-file-invoice" aria-hidden="true"></i> <span class="nav-label">Reports</span></a>
+            <a class="nav-item" href="#" aria-label="Finance"><i class="fa-solid fa-coins" aria-hidden="true"></i> <span class="nav-label">Finance</span></a>
+            <div class="sidebar-section-title">System</div>
+            <a class="nav-item" href="#" aria-label="Settings"><i class="fa-solid fa-gear" aria-hidden="true"></i> <span class="nav-label">Settings</span></a>
+            <a class="nav-item" href="#" aria-label="Help"><i class="fa-solid fa-circle-question" aria-hidden="true"></i> <span class="nav-label">Help</span></a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="sidebar-avatar" aria-hidden="true">DN</div>
+            <div class="sidebar-footer-text">
+                <div class="sidebar-footer-name">Dnaipuch Wongjarupat</div>
+                <div class="sidebar-footer-role">Admin Website</div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ========== MAIN ========== -->
+    <div class="main-wrapper" id="mainWrapper">
+        <!-- Navbar -->
+        <nav class="navbar">
+            <div class="navbar-search">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <input type="text" placeholder="Search metrics, reports, customers..." aria-label="Search dashboard">
+            </div>
+            <span class="navbar-date" id="navbarDate"></span>
+            <div class="navbar-actions">
+                <button class="navbar-btn" id="btnDarkMode" onclick="App.toggleDarkMode()" aria-label="Toggle theme">
+                    <i class="fa-solid fa-moon" id="darkModeIcon" aria-hidden="true"></i>
+                </button>
+                <button class="navbar-btn" aria-label="Notifications">
+                    <i class="fa-solid fa-bell" aria-hidden="true"></i>
+                    <span class="badge-dot"></span>
+                </button>
+                <button class="navbar-btn" aria-label="Calendar">
+                    <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+                </button>
+                <div class="navbar-profile" role="button" tabindex="0" aria-label="User profile">
+                    <div class="navbar-profile-avatar" aria-hidden="true">SO</div>
+                    <span class="navbar-profile-name">Sarah</span>
+                    <i class="fa-solid fa-chevron-down" style="font-size:10px;color:var(--text-tertiary);" aria-hidden="true"></i>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Dashboard content -->
+        <main class="content" id="dashboardContent">
+            <div class="section-header animate-in delay-1">
+                <div><div class="section-title">Executive Overview</div><div class="section-subtitle">Real-time business performance at a glance</div></div>
+                <div class="section-actions">
+                    <button class="btn btn-sm"><i class="fa-solid fa-download" aria-hidden="true"></i> Export</button>
+                    <button class="btn btn-primary btn-sm"><i class="fa-solid fa-plus" aria-hidden="true"></i> New Report</button>
+                </div>
+            </div>
+
+            <!-- KPI Cards (dynamically rendered) -->
+            <div class="kpi-grid" id="kpiGrid"></div>
+
+            <!-- Row: Revenue + Funnel -->
+            <div class="grid-2-1 animate-in delay-2">
+                <div class="card"><div class="card-header"><div><div class="card-title">Revenue Trend</div><div class="card-subtitle">Monthly recurring revenue vs. target</div></div><div class="section-actions"><button class="btn btn-sm active">Monthly</button><button class="btn btn-sm">Weekly</button></div></div><div class="chart-container tall"><canvas id="chartRevenueTrend"></canvas></div></div>
+                <div class="card"><div class="card-header"><div class="card-title">Conversion Funnel</div><div class="card-subtitle">Lead to customer journey</div></div><div class="chart-container tall"><canvas id="chartFunnel"></canvas></div></div>
+            </div>
+
+            <!-- Row: 3 small charts -->
+            <div class="grid-3 animate-in delay-3">
+                <div class="card"><div class="card-header"><div class="card-title">Monthly Sales</div></div><div class="chart-container short"><canvas id="chartMonthlySales"></canvas></div></div>
+                <div class="card"><div class="card-header"><div class="card-title">Profit Margin</div></div><div class="chart-container short"><canvas id="chartProfitMargin"></canvas></div></div>
+                <div class="card"><div class="card-header"><div class="card-title">Customer Growth</div></div><div class="chart-container short"><canvas id="chartCustomerGrowth"></canvas></div></div>
+            </div>
+
+            <!-- Row: Sales Category + Region -->
+            <div class="grid-2 animate-in delay-4">
+                <div class="card"><div class="card-header"><div class="card-title">Sales by Category</div></div><div class="chart-container"><canvas id="chartSalesCategory"></canvas></div></div>
+                <div class="card"><div class="card-header"><div class="card-title">Sales by Region</div></div><div class="chart-container"><canvas id="chartSalesRegion"></canvas></div></div>
+            </div>
+
+            <!-- Row: Order Status + Year Comparison + Inventory Level -->
+            <div class="grid-3 animate-in delay-4">
+                <div class="card"><div class="card-header"><div class="card-title">Order Status Overview</div></div><div class="chart-container"><canvas id="chartOrderStatus"></canvas></div></div>
+                <div class="card"><div class="card-header"><div class="card-title">Year-over-Year Comparison</div></div><div class="chart-container"><canvas id="chartYearComparison"></canvas></div></div>
+                <div class="card"><div class="card-header"><div class="card-title">Inventory Level</div></div><div class="chart-container"><canvas id="chartInventoryLevel"></canvas></div></div>
+            </div>
+
+            <!-- Tables: Top Products + Recent Orders -->
+            <div class="grid-1-2 animate-in delay-5">
+                <div class="card"><div class="card-header"><div class="card-title">Top Products</div><button class="btn btn-sm">View All</button></div><div class="table-wrap" role="table" aria-label="Top products"><table><thead><tr><th scope="col">Product</th><th scope="col">Category</th><th scope="col">Revenue</th><th scope="col">Units</th><th scope="col">Status</th></tr></thead><tbody><tr><td>Enterprise Suite</td><td>Software</td><td>$284,200</td><td>1,420</td><td><span class="status-pill success">Active</span></td></tr><tr><td>Cloud Infrastructure</td><td>Services</td><td>$198,500</td><td>890</td><td><span class="status-pill success">Active</span></td></tr><tr><td>Analytics Pro</td><td>Software</td><td>$156,800</td><td>2,100</td><td><span class="status-pill warning">Pending</span></td></tr><tr><td>Security Bundle</td><td>Software</td><td>$142,300</td><td>650</td><td><span class="status-pill success">Active</span></td></tr><tr><td>API Gateway</td><td>Services</td><td>$98,700</td><td>3,400</td><td><span class="status-pill info">Beta</span></td></tr></tbody></table></div></div>
+                <div class="card"><div class="card-header"><div class="card-title">Recent Orders</div><button class="btn btn-sm">View All</button></div><div class="table-wrap" role="table" aria-label="Recent orders"><table><thead><tr><th scope="col">Order ID</th><th scope="col">Customer</th><th scope="col">Amount</th><th scope="col">Date</th><th scope="col">Status</th></tr></thead><tbody><tr><td>#ORD-8921</td><td>Acme Corp</td><td>$12,450</td><td>Dec 14</td><td><span class="status-pill success">Completed</span></td></tr><tr><td>#ORD-8920</td><td>Globex Inc</td><td>$8,920</td><td>Dec 14</td><td><span class="status-pill success">Completed</span></td></tr><tr><td>#ORD-8919</td><td>Initech</td><td>$24,100</td><td>Dec 13</td><td><span class="status-pill warning">Processing</span></td></tr><tr><td>#ORD-8918</td><td>Umbrella Co</td><td>$3,750</td><td>Dec 13</td><td><span class="status-pill danger">Failed</span></td></tr><tr><td>#ORD-8917</td><td>Stark Ind</td><td>$18,600</td><td>Dec 12</td><td><span class="status-pill success">Completed</span></td></tr></tbody></table></div></div>
+            </div>
+
+            <!-- Widgets Row -->
+            <div class="grid-4 animate-in delay-5">
+                <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-calendar-check" style="margin-right:6px;color:var(--accent);" aria-hidden="true"></i> Calendar</div></div><div class="calendar-mini" id="miniCalendar"></div></div>
+                <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-clock-rotate-left" style="margin-right:6px;color:var(--info);" aria-hidden="true"></i> Activity Timeline</div></div>
+                    <div style="max-height:200px;overflow-y:auto;">
+                        <div class="activity-item"><div class="activity-dot green"></div><div><div class="activity-content"><strong>Olivia Chen</strong> closed a $50k deal with Acme Corp</div><div class="activity-time">2 min ago</div></div></div>
+                        <div class="activity-item"><div class="activity-dot blue"></div><div><div class="activity-content"><strong>Marcus Webb</strong> upgraded to Enterprise plan</div><div class="activity-time">18 min ago</div></div></div>
+                        <div class="activity-item"><div class="activity-dot amber"></div><div><div class="activity-content"><strong>Inventory Alert:</strong> Cloud API Gateway below threshold</div><div class="activity-time">1 hour ago</div></div></div>
+                        <div class="activity-item"><div class="activity-dot red"></div><div><div class="activity-content"><strong>Payment failed</strong> for invoice #INV-4421</div><div class="activity-time">3 hours ago</div></div></div>
+                        <div class="activity-item"><div class="activity-dot green"></div><div><div class="activity-content"><strong>New customer</strong> Stark Industries onboarded</div><div class="activity-time">5 hours ago</div></div></div>
+                    </div>
+                </div>
+                <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-bullseye" style="margin-right:6px;color:var(--warning);" aria-hidden="true"></i> Goals & Progress</div></div>
+                    <div style="display:flex;flex-direction:column;gap:12px;">
+                        <div class="progress-bar-wrap"><div class="progress-label"><span>Revenue Target</span><span>78%</span></div><div class="progress-bar"><div class="progress-fill" style="width:78%;"></div></div></div>
+                        <div class="progress-bar-wrap"><div class="progress-label"><span>Customer Acquisition</span><span>92%</span></div><div class="progress-bar"><div class="progress-fill green" style="width:92%;"></div></div></div>
+                        <div class="progress-bar-wrap"><div class="progress-label"><span>Product Launch</span><span>45%</span></div><div class="progress-bar"><div class="progress-fill amber" style="width:45%;"></div></div></div>
+                    </div>
+                </div>
+                <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-note-sticky" style="margin-right:6px;color:var(--positive);" aria-hidden="true"></i> Quick Notes</div></div>
+                    <textarea class="notes-area" placeholder="Type your notes here..." aria-label="Quick notes">• Q4 strategy review on Friday
+• Follow up with Globex account
+• Review inventory thresholds</textarea>
+                </div>
+            </div>
+
+            <!-- Tables: Best Customers + Inventory Alerts -->
+            <div class="grid-2 animate-in delay-5">
+                <div class="card"><div class="card-header"><div class="card-title">Best Customers</div><button class="btn btn-sm">View All</button></div><div class="table-wrap" role="table" aria-label="Best customers"><table><thead><tr><th scope="col">Customer</th><th scope="col">Revenue</th><th scope="col">Orders</th><th scope="col">LTV</th></tr></thead><tbody><tr><td>Acme Corporation</td><td>$342,000</td><td>48</td><td>$28,500</td></tr><tr><td>Globex Industries</td><td>$287,500</td><td>35</td><td>$22,100</td></tr><tr><td>Initech Solutions</td><td>$231,200</td><td>29</td><td>$18,900</td></tr><tr><td>Umbrella Group</td><td>$198,400</td><td>22</td><td>$16,200</td></tr><tr><td>Stark Enterprises</td><td>$175,800</td><td>18</td><td>$14,500</td></tr></tbody></table></div></div>
+                <div class="card"><div class="card-header"><div class="card-title">Inventory Alerts</div><button class="btn btn-sm btn-primary">Restock</button></div><div class="table-wrap" role="table" aria-label="Inventory alerts"><table><thead><tr><th scope="col">Product</th><th scope="col">Stock</th><th scope="col">Threshold</th><th scope="col">Status</th></tr></thead><tbody><tr><td>Cloud API Gateway</td><td>12</td><td>50</td><td><span class="status-pill danger">Critical</span></td></tr><tr><td>Security Bundle</td><td>28</td><td>40</td><td><span class="status-pill warning">Low</span></td></tr><tr><td>Analytics Pro License</td><td>145</td><td>100</td><td><span class="status-pill success">OK</span></td></tr><tr><td>Enterprise Suite</td><td>89</td><td>60</td><td><span class="status-pill success">OK</span></td></tr><tr><td>Data Storage Pack</td><td>8</td><td>30</td><td><span class="status-pill danger">Critical</span></td></tr></tbody></table></div></div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <span>&copy; 2025 Atlas Analytics. All rights reserved.</span>
+            <span>Data refreshed: <strong id="refreshTime">Just now</strong> &middot; Next update in 5 min</span>
+        </footer>
+    </div>
+
+    <!-- ========== JAVASCRIPT ========== -->
+    <script>
+        /**
+         * Atlas Dashboard - Self-contained application module
+         * All functionality is encapsulated within the 'App' namespace.
+         */
+        const App = (function() {
+            // ---------- PRIVATE STATE ----------
+            let isDarkMode = true;
+            let sidebarCollapsed = false;
+            const chartInstances = {};   // holds all Chart.js instances
+
+            // ---------- DOM REFERENCES ----------
+            const sidebar = document.getElementById('sidebar');
+            const sidebarChevron = document.getElementById('sidebar-chevron');
+            const darkModeIcon = document.getElementById('darkModeIcon');
+            const navbarDate = document.getElementById('navbarDate');
+            const refreshTimeEl = document.getElementById('refreshTime');
+
+            // ---------- UTILITY: Get CSS variable values for charts ----------
+            function getChartColors() {
+                const style = getComputedStyle(document.documentElement);
+                return {
+                    accent: style.getPropertyValue('--accent').trim() || '#3b82f6',
+                    positive: style.getPropertyValue('--positive').trim() || '#10b981',
+                    negative: style.getPropertyValue('--negative').trim() || '#ef4444',
+                    warning: style.getPropertyValue('--warning').trim() || '#f59e0b',
+                    info: style.getPropertyValue('--info').trim() || '#6366f1',
+                    grid: style.getPropertyValue('--chart-grid').trim(),
+                    text: style.getPropertyValue('--chart-text').trim(),
+                };
+            }
+
+            // ---------- CHART OPTIONS FACTORY ----------
+            function commonOptions(custom = {}) {
+                const colors = getChartColors();
+                return {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 1400, easing: 'easeOutQuart' },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: colors.text,
+                                usePointStyle: true,
+                                pointStyleWidth: 8,
+                                padding: 20,
+                                font: { family: 'Inter', size: 11 }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(18,22,26,0.95)',
+                            titleFont: { family: 'Inter', weight: '600', size: 12 },
+                            bodyFont: { family: 'Inter', size: 11 },
+                            padding: 12,
+                            cornerRadius: 10,
+                            borderColor: 'rgba(255,255,255,0.1)',
+                            borderWidth: 1
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: colors.grid },
+                            ticks: { color: colors.text, font: { family: 'Inter', size: 10 } }
+                        },
+                        y: {
+                            grid: { color: colors.grid },
+                            ticks: {
+                                color: colors.text,
+                                font: { family: 'Inter', size: 10 },
+                                callback: (v) => v >= 1000 ? (v / 1000).toFixed(1) + 'k' : v
+                            }
+                        }
+                    },
+                    ...custom
+                };
+            }
+
+            // ---------- THEME UPDATE FOR EXISTING CHARTS ----------
+            function updateChartThemes() {
+                const colors = getChartColors();
+                Object.values(chartInstances).forEach(chart => {
+                    if (chart.options.scales) {
+                        if (chart.options.scales.x) chart.options.scales.x.grid.color = colors.grid;
+                        if (chart.options.scales.y) chart.options.scales.y.grid.color = colors.grid;
+                    }
+                    if (chart.options.plugins?.legend?.labels) {
+                        chart.options.plugins.legend.labels.color = colors.text;
+                    }
+                    chart.update();
+                });
+            }
+
+            // ---------- SIDEBAR TOGGLE ----------
+            function toggleSidebar() {
+                sidebarCollapsed = !sidebarCollapsed;
+                sidebar.classList.toggle('collapsed', sidebarCollapsed);
+                sidebarChevron.className = sidebarCollapsed ?
+                    'fa-solid fa-chevron-right' : 'fa-solid fa-chevron-left';
+            }
+
+            // ---------- DARK MODE TOGGLE ----------
+            function toggleDarkMode() {
+                isDarkMode = !isDarkMode;
+                document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+                darkModeIcon.className = isDarkMode ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+                updateChartThemes();
+            }
+
+            // ---------- DATE & REFRESH ----------
+            function updateDateTime() {
+                const now = new Date();
+                navbarDate.textContent = now.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                if (refreshTimeEl) {
+                    refreshTimeEl.textContent = now.toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    });
+                }
+            }
+
+            // ---------- MINI CALENDAR ----------
+            function renderMiniCalendar() {
+                const container = document.getElementById('miniCalendar');
+                if (!container) return;
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = now.getMonth();
+                const today = now.getDate();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const firstDay = new Date(year, month, 1).getDay();
+                const monthNames = ['January','February','March','April','May','June','July','August',
+                    'September','October','November','December'];
+                const eventDays = [3, 7, 15, 22, 28];
+
+                let html = `<div style="text-align:center;font-weight:600;font-size:13px;margin-bottom:8px;color:var(--text-primary);">${monthNames[month]} ${year}</div>`;
+                html += ['Su','Mo','Tu','We','Th','Fr','Sa'].map(d => `<span class="day-header">${d}</span>`).join('');
+                for (let i = 0; i < firstDay; i++) html += '<span></span>';
+                for (let d = 1; d <= daysInMonth; d++) {
+                    let cls = 'day';
+                    if (d === today) cls += ' today';
+                    if (eventDays.includes(d)) cls += ' event';
+                    html += `<span class="${cls}">${d}</span>`;
+                }
+                container.innerHTML = html;
+            }
+
+            // ---------- SPARKLINE FOR KPI CARDS ----------
+            function createSparkline(canvasId, data, color) {
+                const ctx = document.getElementById(canvasId)?.getContext('2d');
+                if (!ctx) return;
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.map((_, i) => i),
+                        datasets: [{
+                            data: data,
+                            borderColor: color,
+                            borderWidth: 1.8,
+                            fill: false,
+                            pointRadius: 0,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                        scales: { x: { display: false }, y: { display: false } },
+                        animation: { duration: 1200 }
+                    }
+                });
+            }
+
+            // ---------- ANIMATED COUNTER ----------
+            function animateCounter(el, target, isFloat = false) {
+                const duration = 1500;
+                const startTime = performance.now();
+                function update(now) {
+                    const progress = Math.min((now - startTime) / duration, 1);
+                    const eased = 1 - Math.pow(1 - progress, 3);
+                    const current = startVal + (target - startVal) * eased;
+                    if (isFloat) el.textContent = current.toFixed(1) + '%';
+                    else if (target >= 1000000) el.textContent = '$' + (current / 1000000).toFixed(2) + 'M';
+                    else if (target >= 1000) el.textContent = Math.round(current).toLocaleString();
+                    else el.textContent = Math.round(current).toString();
+                    if (progress < 1) requestAnimationFrame(update);
+                    else {
+                        // final exact value
+                        if (isFloat) el.textContent = target.toFixed(1) + '%';
+                        else if (target >= 1000000) el.textContent = '$' + (target / 1000000).toFixed(2) + 'M';
+                        else if (target >= 1000) el.textContent = Math.round(target).toLocaleString();
+                        else el.textContent = Math.round(target).toString();
+                    }
+                }
+                const startVal = 0;
+                requestAnimationFrame(update);
+            }
+
+            // ---------- KPI RENDERING ----------
+            const kpiData = [
+                { label:'Total Revenue', value:'$2.84M', numeric:2840000, trend:'+18.2%', direction:'up',
+                    icon:'fa-dollar-sign', iconClass:'green', sparkData:[420,460,445,480,510,530,560,550,580,600,620,650,670,690,710,730,750,770,790,820,840,860,880,910] },
+                { label:'Total Orders', value:'8,421', numeric:8421, trend:'+12.7%', direction:'up',
+                    icon:'fa-cart-shopping', iconClass:'blue', sparkData:[320,340,330,360,380,370,400,420,410,440,460,450,480,500,490,520,540,530,560,580,570,600,620,640] },
+                { label:'Customers', value:'3,286', numeric:3286, trend:'+24.5%', direction:'up',
+                    icon:'fa-users', iconClass:'purple', sparkData:[180,200,210,230,250,270,290,310,330,350,370,390,410,430,450,470,490,510,530,550,570,590,610,630] },
+                { label:'Net Profit', value:'$672K', numeric:672000, trend:'+9.3%', direction:'up',
+                    icon:'fa-chart-pie', iconClass:'amber', sparkData:[200,210,205,220,230,225,240,250,245,260,270,265,280,290,285,300,310,305,320,330,325,340,350,360] },
+                { label:'Growth Rate', value:'31.8%', numeric:31.8, trend:'-2.1%', direction:'down',
+                    icon:'fa-arrow-trend-up', iconClass:'rose', sparkData:[38,37,39,36,35,34,33,32,34,33,32,31,30,31,32,31,30,29,30,31,32,31,30,31] }
+            ];
+
+            function renderKPICards() {
+                const grid = document.getElementById('kpiGrid');
+                grid.innerHTML = kpiData.map((item, i) => `
+                    <div class="kpi-card animate-in delay-${i+1}">
+                        <div class="kpi-card-header">
+                            <div class="kpi-card-icon ${item.iconClass}"><i class="fa-solid ${item.icon}" aria-hidden="true"></i></div>
+                            <span class="kpi-card-label">${item.label}</span>
+                        </div>
+                        <div class="kpi-card-value" data-target="${item.numeric}" data-isfloat="${item.label==='Growth Rate'?1:0}">${item.value}</div>
+                        <span class="kpi-card-trend ${item.direction}"><i class="fa-solid fa-arrow-${item.direction==='up'?'up':'down'}" aria-hidden="true"></i> ${item.trend}</span>
+                        <div class="kpi-sparkline"><canvas id="spark-${i}"></canvas></div>
+                    </div>
+                `).join('');
+
+                // Create sparklines
+                kpiData.forEach((item, i) => {
+                    createSparkline(`spark-${i}`, item.sparkData,
+                        item.direction === 'up' ? '#10b981' : '#ef4444');
+                });
+
+                // Observe for counter animation
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const valueEl = entry.target.querySelector('.kpi-card-value');
+                            if (valueEl && !valueEl.dataset.animated) {
+                                const target = parseFloat(valueEl.dataset.target);
+                                const isFloat = valueEl.dataset.isfloat === '1';
+                                animateCounter(valueEl, target, isFloat);
+                                valueEl.dataset.animated = 'true';
+                            }
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.3 });
+                document.querySelectorAll('.kpi-card').forEach(card => observer.observe(card));
+            }
+
+            // ---------- CREATE ALL MAIN CHARTS ----------
+            function createAllCharts() {
+                const colors = getChartColors();
+
+                // Revenue Trend
+                if (document.getElementById('chartRevenueTrend')) {
+                    chartInstances.revenueTrend = new Chart(document.getElementById('chartRevenueTrend'), {
+                        type: 'line',
+                        data: {
+                            labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+                            datasets: [
+                                { label: 'Revenue 2025', data: [420,460,510,540,580,620,660,710,750,790,830,870], borderColor: colors.accent, borderWidth: 2.5, tension: 0.4, pointRadius: 4, pointBackgroundColor: colors.accent, fill: false },
+                                { label: 'Revenue 2024', data: [380,400,430,460,490,510,530,560,590,620,650,680], borderColor: colors.text, borderDash: [6,4], borderWidth: 1.5, tension: 0.4, pointRadius: 2, fill: false },
+                                { label: 'Target', data: [450,480,520,560,600,640,680,720,760,800,840,880], borderColor: colors.positive, borderDash: [3,5], borderWidth: 1.5, tension: 0.4, pointRadius: 0, fill: false }
+                            ]
+                        },
+                        options: commonOptions({
+                            scales: { y: { ...commonOptions().scales.y, ticks: { ...commonOptions().scales.y.ticks, callback: v => '$' + (v/1000).toFixed(0) + 'k' } } }
+                        })
+                    });
+                }
+
+                // Conversion Funnel
+                if (document.getElementById('chartFunnel')) {
+                    chartInstances.funnel = new Chart(document.getElementById('chartFunnel'), {
+                        type: 'bar',
+                        data: {
+                            labels: ['Leads','Qualified','Proposal','Negotiation','Closed Won'],
+                            datasets: [{ data: [10000,7200,4800,2400,1200], backgroundColor: ['rgba(59,130,246,0.7)','rgba(59,130,246,0.6)','rgba(99,102,241,0.6)','rgba(99,102,241,0.5)','rgba(16,185,129,0.7)'], borderWidth: 1.5, borderRadius: 8, borderSkipped: false }]
+                        },
+                        options: commonOptions({ indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { grid: { color: colors.grid } }, y: { grid: { display: false } } } })
+                    });
+                }
+
+                // Monthly Sales
+                if (document.getElementById('chartMonthlySales')) {
+                    chartInstances.monthlySales = new Chart(document.getElementById('chartMonthlySales'), {
+                        type: 'bar',
+                        data: { labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], datasets: [{ data: [380,420,450,480,520,560,600,580,620,660,700,740], backgroundColor: colors.accent+'99', borderColor: colors.accent, borderWidth: 1, borderRadius: 8, borderSkipped: false }] },
+                        options: commonOptions({ plugins: { legend: { display: false } } })
+                    });
+                }
+
+                // Profit Margin
+                if (document.getElementById('chartProfitMargin')) {
+                    chartInstances.profitMargin = new Chart(document.getElementById('chartProfitMargin'), {
+                        type: 'line',
+                        data: { labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], datasets: [{ data: [28,30,29,32,31,33,35,34,36,35,37,38], borderColor: colors.positive, backgroundColor: 'rgba(16,185,129,0.08)', borderWidth: 2.5, tension: 0.4, fill: true, pointRadius: 3 }] },
+                        options: commonOptions({ plugins: { legend: { display: false } }, scales: { y: { ticks: { callback: v => v + '%' } } } })
+                    });
+                }
+
+                // Customer Growth
+                if (document.getElementById('chartCustomerGrowth')) {
+                    chartInstances.customerGrowth = new Chart(document.getElementById('chartCustomerGrowth'), {
+                        type: 'bar',
+                        data: { labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], datasets: [
+                            { label: 'New', data: [120,140,160,155,180,200,210,195,220,240,260,280], backgroundColor: 'rgba(16,185,129,0.7)', borderColor: '#10b981', borderWidth: 1, borderRadius: 6 },
+                            { label: 'Lost', data: [30,35,28,40,32,38,45,42,35,40,38,50], backgroundColor: 'rgba(239,68,68,0.7)', borderColor: '#ef4444', borderWidth: 1, borderRadius: 6 }
+                        ]},
+                        options: commonOptions()
+                    });
+                }
+
+                // Sales Category
+                if (document.getElementById('chartSalesCategory')) {
+                    chartInstances.salesCategory = new Chart(document.getElementById('chartSalesCategory'), {
+                        type: 'doughnut',
+                        data: { labels: ['Enterprise','Mid-Market','SMB','Startup','Non-Profit'], datasets: [{ data: [35,28,20,12,5], backgroundColor: ['#3b82f6','#6366f1','#10b981','#f59e0b','#ef4444'], borderWidth: 0 }] },
+                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: colors.text, padding: 16, font: { family:'Inter', size:11 }, usePointStyle: true, pointStyleWidth: 8 } } } }
+                    });
+                }
+
+                // Sales Region
+                if (document.getElementById('chartSalesRegion')) {
+                    chartInstances.salesRegion = new Chart(document.getElementById('chartSalesRegion'), {
+                        type: 'bar',
+                        data: { labels: ['North America','Europe','Asia Pacific','Latin America','MENA'], datasets: [{ data: [890,620,480,310,240], backgroundColor: ['rgba(59,130,246,0.75)','rgba(99,102,241,0.7)','rgba(16,185,129,0.65)','rgba(245,158,11,0.6)','rgba(239,68,68,0.55)'], borderWidth: 1, borderRadius: 8 }] },
+                        options: commonOptions({ indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'k' } } } })
+                    });
+                }
+
+                // Order Status
+                if (document.getElementById('chartOrderStatus')) {
+                    chartInstances.orderStatus = new Chart(document.getElementById('chartOrderStatus'), {
+                        type: 'polarArea',
+                        data: { labels: ['Completed','Processing','Pending','Failed','Refunded'], datasets: [{ data: [65,18,10,5,2], backgroundColor: ['rgba(16,185,129,0.7)','rgba(59,130,246,0.7)','rgba(245,158,11,0.7)','rgba(239,68,68,0.7)','rgba(148,163,184,0.6)'] }] },
+                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: colors.text, padding: 14, font: { family:'Inter', size:10 }, usePointStyle: true, pointStyleWidth: 8 } } }, scales: { r: { grid: { color: colors.grid }, ticks: { display: false } } } }
+                    });
+                }
+
+                // Year Comparison
+                if (document.getElementById('chartYearComparison')) {
+                    chartInstances.yearComparison = new Chart(document.getElementById('chartYearComparison'), {
+                        type: 'bar',
+                        data: { labels: ['Q1','Q2','Q3','Q4'], datasets: [
+                            { label: '2024', data: [1200,1400,1600,1800], backgroundColor: 'rgba(148,163,184,0.5)', borderColor: '#94a3b8', borderWidth: 1, borderRadius: 6 },
+                            { label: '2025', data: [1500,1750,2000,2300], backgroundColor: 'rgba(59,130,246,0.7)', borderColor: '#3b82f6', borderWidth: 1, borderRadius: 6 }
+                        ]},
+                        options: commonOptions({ scales: { y: { ticks: { callback: v => '$' + (v/1000).toFixed(1) + 'k' } } } })
+                    });
+                }
+
+                // Inventory Level
+                if (document.getElementById('chartInventoryLevel')) {
+                    chartInstances.inventoryLevel = new Chart(document.getElementById('chartInventoryLevel'), {
+                        type: 'line',
+                        data: { labels: ['Week 1','Week 2','Week 3','Week 4','Week 5','Week 6'], datasets: [{ label: 'Stock', data: [850,820,780,740,700,650], borderColor: colors.warning, backgroundColor: 'rgba(245,158,11,0.08)', borderWidth: 2.5, tension: 0.4, fill: true, pointRadius: 4 }] },
+                        options: commonOptions({ plugins: { legend: { display: false } } })
+                    });
+                }
+            }
+
+            // ---------- RESPONSIVE HANDLER ----------
+            function handleResize() {
+                if (window.innerWidth <= 900 && !sidebarCollapsed) {
+                    sidebarCollapsed = true;
+                    sidebar.classList.add('collapsed');
+                    sidebarChevron.className = 'fa-solid fa-chevron-right';
+                }
+            }
+
+            // ---------- INITIALIZATION ----------
+            function init() {
+                renderKPICards();
+                renderMiniCalendar();
+                createAllCharts();
+                updateDateTime();
+                setInterval(updateDateTime, 30000);
+                window.addEventListener('resize', handleResize);
+                handleResize(); // initial check
+                console.log('%c🚀 Atlas Dashboard %cReady', 'font-size:18px;font-weight:700;color:#3b82f6;', 'font-size:14px;color:#10b981;');
+            }
+
+            // ---------- PUBLIC API ----------
+            return {
+                toggleSidebar,
+                toggleDarkMode,
+                init
+            };
+        })();
+
+        // Start the app after DOM is ready
+        document.addEventListener('DOMContentLoaded', App.init);
+    </script>
+</body>
+</html>
